@@ -14,6 +14,13 @@ const (
 	LiveURL    = "https://api.beinfi.com"
 )
 
+// SDKVersion is the SDK version, sent in the User-Agent.
+const SDKVersion = "1.0.0"
+
+// UserAgent identifies the SDK to the API. Cloudflare in front of the API
+// blocks Go's default "Go-http-client/1.1", so every request sends this.
+const UserAgent = "beinfi-go/" + SDKVersion
+
 // Channel is the origin channel of an approval (X-Infi-Channel header).
 type Channel string
 

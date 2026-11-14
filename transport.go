@@ -198,6 +198,7 @@ func (c *Client) do(ctx context.Context, req request, opts []CallOption, out any
 	h := http.Header{}
 	h.Set("Accept", "application/json")
 	h.Set("Authorization", "Bearer "+c.secretKey)
+	h.Set("User-Agent", UserAgent)
 	hvals, err := fields(req.headers, "header")
 	if err != nil {
 		return err

@@ -94,6 +94,9 @@ func TestPostSendsBearerAndIdempotencyKeyUUID(t *testing.T) {
 	if c.header.Get("Authorization") != "Bearer sk_live_x" || c.header.Get("Accept") != "application/json" {
 		t.Fatalf("headers: %v", c.header)
 	}
+	if c.header.Get("User-Agent") != "beinfi-go/"+SDKVersion {
+		t.Fatalf("User-Agent = %q", c.header.Get("User-Agent"))
+	}
 	if !uuidRe.MatchString(c.header.Get("Idempotency-Key")) {
 		t.Fatalf("Idempotency-Key = %q", c.header.Get("Idempotency-Key"))
 	}
