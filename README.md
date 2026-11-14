@@ -63,6 +63,6 @@ CI (`.github/workflows/ci.yml`) fails if:
 
 - `make check-generated` changes anything (the generated code doesn't match `api/openapi.sdk.json`);
 - `go vet`, `go test` or `go build` break;
-- any example in `examples/` fails against `api-sandbox.beinfi.com`, using the key from the `INFI_SANDBOX_SECRET_KEY` secret. The `*_test.go` tests only cover the transport; the proof that the SDK talks to the API is the examples.
+- any example in `examples/` fails against `api-sandbox.beinfi.com`, using the key from the `INFI_SANDBOX_SECRET_KEY` secret. Each SDK repo uses its own sandbox account: the four CIs run at the same time, and on a shared account they race on its config (412 `plan_changed`) and on its rate limit (429). The `*_test.go` tests only cover the transport; the proof that the SDK talks to the API is the examples.
 
 Publishing is manual: the `release` workflow takes the version (for example `v1.0.0`), reruns the checks, runs the examples, creates and pushes the tag and opens the release on GitHub. Go modules are published by tag; the proxy (`proxy.golang.org`) picks it up on its own.
