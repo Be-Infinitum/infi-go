@@ -1,0 +1,23 @@
+# oapi-codegen configuration (types only). Run by `go generate` (generate.go),
+# with the version pinned in the //go:generate line.
+package: infi
+output: types.gen.go
+generate:
+  models: true
+output-options:
+  overlay:
+    path: internal/oapi/overlay.yaml
+    strict: false
+  # Named types for inline response bodies: resources.gen.go uses them
+  # (<OperationId>200JSONResponseBody).
+  generate-types-for-anonymous-schemas: true
+  # No dependencies beyond the unions runtime (oneOf/allOf).
+  type-mapping:
+    string:
+      formats:
+        uuid:
+          type: string
+        email:
+          type: string
+        date:
+          type: string

@@ -1,0 +1,57 @@
+name: ci
+
+# The package is generated from the contract (ADR 0055). This workflow proves three things:
+#   1. types.gen.go and resources.gen.go are exactly what the generators produce
+#      from api/openapi.sdk.json;
+#   2. vet, transport tests and build pass;
+#   3. the examples run against the real sandbox, never against a fake of our
+#      API (ADR 0055, D7.4). Without the secret, step 3 fails: there is no
+#      "passed" without a backend.
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  generated-and-unit:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.26.5' # pinned: oapi-codegen v2.8.2 requires Go 1.25+, and the generated code goes through that toolchain's gofmt
+      - name: Generated files match the contract
+        run: make check-generated
+      - run: go vet ./...
+      - run: go test ./...
+      - run: go build ./...
+
+  sandbox:
+    # The examples are the suite against the real backend. A PR from a fork does
+    # not get the secret; in that case the reviewer runs the workflow manually after merging.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    needs: generated-and-unit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    concurrency:
+      # Only one sandbox account: two simultaneous runs would apply
+      # config documents on top of each other.
+      group: sandbox-examples
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Examples against api-sandbox.beinfi.com
+        env:
+          INFI_SECRET_KEY: ${{ secrets.INFI_SANDBOX_SECRET_KEY }}
+        run: go run ./examples/run-all
